@@ -3,11 +3,15 @@ module switch_debouncer(Q,q,clk,reset);
   input q,clk,reset;
   reg timer_done;
   parameter s0=0,s1=1,s2=2,s3=3;
-  reg [1:0]state;
+  reg [1:0]state,next_state;
   reg [3:0]count;
   reg start;
-  always@(negedge reset)
-    state<=s0;
+  always@(negedge reset,posedge clk) begin
+   if(~reset) begin
+    state<=s0; next_state<=s0; end
+    else 
+    state<=next_state;
+    end
   
   
   always@(q,timer_done)
@@ -16,62 +20,62 @@ module switch_debouncer(Q,q,clk,reset);
         s0:
           if(q)
             begin 
-              start<=1;
-              state<=s1;
-              Q<=0;
-              timer_done<=0;
+              start=1;
+              next_state=s1;
+              Q=0;
+             // timer_done<=0;
             end
           else
             begin
-              Q<=0;
+              Q=0;
               start=0;
             end
         s1:
           if(q&timer_done)
             begin
-              state<=s2;
-              Q<=1;
-              start<=0;
-              count<='b0;
+              next_state=s2;
+              Q=1;
+              start=0;
+             // count<='b0;
             end
           else if(q&(~timer_done))
             begin
-              start<=1;
-              Q<=0;
+              start=1;
+              Q=0;
             end
           else
             begin
               
-              state<=s0;
-              start<=0;
-              Q<=0;
+              next_state=s0;
+              start=0;
+              Q=0;
             end
         s2:
           if(~q)
             begin
-              state<=s3;
-              Q<=1;
-              start<=1;
+              next_state=s3;
+              Q=1;
+              start=1;
             end
           else
-            start<=0;
+            start=0;
         s3:
           if(q)
             begin
-              start<=0;
-              state<=s2;
+              start=0;
+              next_state=s2;
               
             end
         else if((~q)&timer_done)
           begin
-            start<=0;
-            state<=s0;
-            Q<=0;
+            start=0;
+            next_state=s0;
+            Q=0;
             
           end
         else
          // begin
-            start<=1;
+            start=1;
             
       endcase 
     end
