@@ -1,21 +1,22 @@
-module switch_debouncer(Q,q,clk,reset);
+    module switch_debouncer(Q,q,clk,reset);
   output reg Q;
   input q,clk,reset;
   reg timer_done;
-  parameter s0=0,s1=1,s2=2,s3=3;
+  localparam s0=0,s1=1,s2=2,s3=3;
   reg [1:0]state,next_state;
   reg [3:0]count;
   reg start;
-  always@(negedge reset,posedge clk) begin
-   if(~reset) begin
-    state<=s0; next_state<=s0; end
+  always@(negedge reset,posedge clk)
+   begin
+    if(~reset) 
+     state<=s0;  
     else 
-    state<=next_state;
-    end
-  
-  
-  always@(q,timer_done)
+     state<=next_state;
+   end 
+   
+  always@(*)
     begin
+    next_state=state;
       case(state)
         s0:
           if(q)
@@ -44,8 +45,7 @@ module switch_debouncer(Q,q,clk,reset);
               Q=0;
             end
           else
-            begin
-              
+            begin   
               next_state=s0;
               start=0;
               Q=0;
@@ -79,19 +79,20 @@ module switch_debouncer(Q,q,clk,reset);
             
       endcase 
     end
+    
   always@(posedge clk)
     begin
       if(start)
         begin
-          if(count<10)
+          if(count==1)
             begin
-              count=count+1; 
-              timer_done=0;
+              count='b0; 
+              timer_done=1;
             end  
             else
               begin
-              count='b0; 
-              timer_done=1;
+               count=count+1; 
+               timer_done=0;
               end
             
          end
